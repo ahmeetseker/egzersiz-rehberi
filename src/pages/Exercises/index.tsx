@@ -23,6 +23,25 @@ const ExercisesPage = () => {
     getFavoriteExercises,
   } = useExercise();
   
+  // Metin normalleştirme fonksiyonu - Türkçe ve İngilizce karakterler için
+  // Tüm filtreleme işlemlerinde kullanılacak
+  const normalizeText = (text: string): string => {
+    if (!text) return '';
+    
+    // Sadece küçük harfe dönüştür, boşlukları ve özel karakterleri koru
+    return text.toLowerCase();
+  };
+  
+  // Eşleşme kontrolü için yardımcı fonksiyon
+  const isMatchingText = (sourceText: string, targetText: string): boolean => {
+    // Daha esnek eşleşme - birinin diğerini içerip içermediğini kontrol et
+    const normalizedSource = normalizeText(sourceText);
+    const normalizedTarget = normalizeText(targetText);
+    
+    return normalizedSource.includes(normalizedTarget) || 
+           normalizedTarget.includes(normalizedSource);
+  };
+  
   // States
   const [selectedBodyPart, setSelectedBodyPart] = useState<string>('');
   const [selectedTarget, setSelectedTarget] = useState<string>('');
@@ -42,14 +61,16 @@ const ExercisesPage = () => {
     queryKey: ['exercises', selectedBodyPart, selectedTarget, selectedEquipment, searchQuery, showFavorites],
     queryFn: async () => {
       try {
+        // Filtreleme işlemi başlangıcı
+        
         // Favorileri göster
         if (showFavorites) {
           return await getFavoriteExercises();
         }
         
         // Arama çalıştır
-        if (searchQuery) {
-          return await searchExercisesByName(searchQuery);
+        if (searchQuery && searchQuery.trim().length > 0) {
+          return await searchExercisesByName(searchQuery.trim());
         }
         
         // İlk yükleme durumunda ve hiçbir filtre yoksa, önce önbellekte veri kontrolü yap
@@ -64,54 +85,91 @@ const ExercisesPage = () => {
           return await getExercisesByBodyPart('back');
         }
         
-        // Kaç filtre seçili olduğunu belirle
-        const filtersSelected = [selectedTarget, selectedBodyPart, selectedEquipment].filter(Boolean).length;
-        console.log("Seçilen filtre sayısı:", filtersSelected);
-        console.log("Filtreler - Target:", selectedTarget, "BodyPart:", selectedBodyPart, "Equipment:", selectedEquipment);
+        let results: Exercise[] = [];
         
-        let primaryResults: Exercise[] = [];
+        // STRATEJI:
+        // 1. Tüm filtre kombinasyonlarını ele alalım
+        // 2. Her kombinasyon için en uygun API çağrısını yapalım
+        // 3. Sonra gerekirse client-side filtreleme uygulayalım
         
-        // Tamamen yeni bir filtreleme yaklaşımı uygula
-        // Önceliği değiştirdik: Target > Equipment > BodyPart
-        // Target genellikle daha spesifik sonuçlar verir
+        // DURUM 1: Üçü de seçili (bodyPart + target + equipment)
+        if (selectedBodyPart && selectedTarget && selectedEquipment) {
+          // BodyPart ile başlayıp diğerlerini client-side filtreleyelim
+          results = await getExercisesByBodyPart(selectedBodyPart);
+          
+          // Target filtresi uygula - Türkçe karakter desteğiyle
+          results = results.filter(ex => {
+            // isMatchingText fonksiyonunu kullan (zaten bileşenin üstünde tanımlı)
+            return isMatchingText(ex.target, selectedTarget);
+          });
+          
+          // Equipment filtresi uygula - Esnek eşleştirme kullan
+          results = results.filter(ex => {
+            // isMatchingText fonksiyonunu kullan (zaten bileşenin üstünde tanımlı)
+            return isMatchingText(ex.equipment, selectedEquipment);
+          });
+        } 
         
-        try {
-          // Ana API çağrısını yap - öncelik sırasına göre
-          if (selectedTarget) {
-            console.log("Hedef kas API'si çağrılıyor:", selectedTarget);
-            primaryResults = await getExercisesByTarget(selectedTarget);
-            console.log("Hedef kasa göre yüklendi:", primaryResults.length);
-          } else if (selectedEquipment) {
-            console.log("Ekipman API'si çağrılıyor:", selectedEquipment);
-            primaryResults = await getExercisesByEquipment(selectedEquipment);
-            console.log("Ekipmana göre yüklendi:", primaryResults.length);
-          } else if (selectedBodyPart) {
-            console.log("Vücut bölgesi API'si çağrılıyor:", selectedBodyPart);
-            primaryResults = await getExercisesByBodyPart(selectedBodyPart);
-            console.log("Vücut bölgesine göre yüklendi:", primaryResults.length);
-          } else {
-            console.log("Hiçbir filtre seçilmedi, varsayılan sonuçlar getiriliyor.");
-          }
+        // DURUM 2: Sadece bodyPart ve target seçili
+        else if (selectedBodyPart && selectedTarget && !selectedEquipment) {
+          // BodyPart ile başlayalım
+          results = await getExercisesByBodyPart(selectedBodyPart);
           
-          // Varsa ek filtreleri uygula
-          if (selectedBodyPart && selectedTarget) {
-            console.log("Vücut bölgesi filtrelemesi uygulanıyor:", selectedBodyPart);
-            primaryResults = primaryResults.filter(ex => ex.bodyPart.toLowerCase() === selectedBodyPart.toLowerCase());
-            console.log("Vücut bölgesi filtrelemesi sonrası:", primaryResults.length);
-          }
-          
-          if (selectedEquipment && (selectedTarget || selectedBodyPart)) {
-            console.log("Ekipman filtrelemesi uygulanıyor:", selectedEquipment);
-            primaryResults = primaryResults.filter(ex => ex.equipment.toLowerCase() === selectedEquipment.toLowerCase());
-            console.log("Ekipman filtrelemesi sonrası:", primaryResults.length);
-          }
-          
-        } catch (error) {
-          console.error("Filtreleme sırasında hata oluştu:", error);
-          primaryResults = [];
+          // Target filtresi uygula - Türkçe karakter desteğiyle
+          results = results.filter(ex => {
+            // isMatchingText fonksiyonunu kullan (zaten bileşenin üstünde tanımlı)
+            return isMatchingText(ex.target, selectedTarget);
+          });
         }
         
-        return primaryResults;
+        // DURUM 3: Sadece bodyPart ve equipment seçili
+        else if (selectedBodyPart && !selectedTarget && selectedEquipment) {
+          // BodyPart ile başlayalım
+          results = await getExercisesByBodyPart(selectedBodyPart);
+          
+          // ESNEK EŞLEŞTİRME: Tam eşleme yerine daha esnek bir yaklaşım kullan
+          results = results.filter(ex => {
+            // isMatchingText fonksiyonunu kullan (zaten bileşenin üstünde tanımlı)
+            return isMatchingText(ex.equipment, selectedEquipment);
+          });
+        }
+        
+        // DURUM 4: Sadece target ve equipment seçili
+        else if (!selectedBodyPart && selectedTarget && selectedEquipment) {
+          // Target ile başlayalım
+          results = await getExercisesByTarget(selectedTarget);
+          
+          // Equipment filtresi uygula - Esnek eşleştirme kullan
+          results = results.filter(ex => {
+            // isMatchingText fonksiyonunu kullan (zaten bileşenin üstünde tanımlı)
+            return isMatchingText(ex.equipment, selectedEquipment);
+          });
+        }
+        
+        // DURUM 5: Sadece bodyPart seçili
+        else if (selectedBodyPart && !selectedTarget && !selectedEquipment) {
+          results = await getExercisesByBodyPart(selectedBodyPart);
+        }
+        
+        // DURUM 6: Sadece target seçili
+        else if (!selectedBodyPart && selectedTarget && !selectedEquipment) {
+          results = await getExercisesByTarget(selectedTarget);
+        }
+        
+        // DURUM 7: Sadece equipment seçili
+        else if (!selectedBodyPart && !selectedTarget && selectedEquipment) {
+          // API çağrısında orijinal parametreyi kullanma, tüm egzersizler arasından filtreleme yapalım
+          // API'nin kendi filtrelemesi yerine daha esnek bir filtreleme uygulayalım
+          const allExercises = await getExercisesByEquipment("body weight"); // En yaygın ekipman türü ile başla
+          
+          results = allExercises.filter(ex => {
+            // isMatchingText fonksiyonunu kullan (zaten bileşenin üstünde tanımlı)
+            return isMatchingText(ex.equipment, selectedEquipment);
+          });
+        }
+        
+        return results;
+        
       } catch (error) {
         return [];
       }

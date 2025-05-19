@@ -96,7 +96,6 @@ export const ExerciseProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         // localStorage hatası durumunda, favorileri sıfırla
         setFavoriteExercises([]);
-        console.error('Favoriler yüklenirken hata oluştu:', error);
       }
     };
     
@@ -110,7 +109,7 @@ export const ExerciseProvider = ({ children }: { children: ReactNode }) => {
         const key = getFavoriteKeyForUser(currentUserId);
         localStorage.setItem(key, JSON.stringify(favoriteExercises));
       } catch (error) {
-        console.error('Favoriler kaydedilirken hata oluştu:', error);
+        // localStorage hatası durumunda işlem yapılmıyor
       }
     }
   }, [favoriteExercises, currentUserId]);
@@ -142,7 +141,6 @@ export const ExerciseProvider = ({ children }: { children: ReactNode }) => {
         equipment: equipmentResponse.data || []
       };
     } catch (error) {
-      console.error('Filtreleri alırken hata oluştu:', error);
       return {
         bodyParts: [],
         targets: [],
@@ -180,7 +178,6 @@ export const ExerciseProvider = ({ children }: { children: ReactNode }) => {
       
       return [];
     } catch (error) {
-      console.error('Egzersizleri alırken hata oluştu:', error);
       return [];
     } finally {
       setExercisesLoading(false);
@@ -207,7 +204,6 @@ export const ExerciseProvider = ({ children }: { children: ReactNode }) => {
       
       return undefined;
     } catch (error) {
-      console.error(`Egzersiz (${id}) alınırken hata oluştu:`, error);
       return undefined;
     }
   };
@@ -232,7 +228,6 @@ export const ExerciseProvider = ({ children }: { children: ReactNode }) => {
       
       return [];
     } catch (error) {
-      console.error(`Vücut bölgesine (${bodyPart}) göre egzersizleri alırken hata oluştu:`, error);
       return [];
     }
   };
@@ -257,7 +252,6 @@ export const ExerciseProvider = ({ children }: { children: ReactNode }) => {
       
       return [];
     } catch (error) {
-      console.error(`Hedef kasa (${target}) göre egzersizleri alırken hata oluştu:`, error);
       return [];
     }
   };
@@ -282,7 +276,6 @@ export const ExerciseProvider = ({ children }: { children: ReactNode }) => {
       
       return [];
     } catch (error) {
-      console.error(`Ekipman türüne (${equipment}) göre egzersizleri alırken hata oluştu:`, error);
       return [];
     }
   };
@@ -311,7 +304,6 @@ export const ExerciseProvider = ({ children }: { children: ReactNode }) => {
       
       return [];
     } catch (error) {
-      console.error(`İsme (${name}) göre egzersizleri ararken hata oluştu:`, error);
       return [];
     }
   };
@@ -339,7 +331,6 @@ export const ExerciseProvider = ({ children }: { children: ReactNode }) => {
       // undefined değerleri filtrele
       return exercises.filter(Boolean) as Exercise[];
     } catch (error) {
-      console.error('Favori egzersizler yüklenirken bir hata oluştu:', error);
       return [];
     }
   };

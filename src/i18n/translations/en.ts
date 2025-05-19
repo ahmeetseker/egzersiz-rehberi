@@ -73,73 +73,7 @@ const enTranslations = {
   
   exercises: {
     // Body parts translations
-    bodyParts: {
-      'back': 'Back',
-      'cardio': 'Cardio',
-      'chest': 'Chest',
-      'lower arms': 'Lower arms',
-      'lower legs': 'Lower legs',
-      'neck': 'Neck',
-      'shoulders': 'Shoulders',
-      'upper arms': 'Upper arms',
-      'upper legs': 'Upper legs',
-      'waist': 'Waist',
-    },
-    
-    // Equipment translations
-    equipment: {
-      'assisted': 'Assisted',
-      'band': 'Band',
-      'barbell': 'Barbell',
-      'body weight': 'Body weight',
-      'bosu ball': 'Bosu ball',
-      'cable': 'Cable',
-      'dumbbell': 'Dumbbell',
-      'elliptical machine': 'Elliptical machine',
-      'ez barbell': 'EZ barbell',
-      'hammer': 'Hammer',
-      'kettlebell': 'Kettlebell',
-      'leverage machine': 'Leverage machine',
-      'medicine ball': 'Medicine ball',
-      'olympic barbell': 'Olympic barbell',
-      'resistance band': 'Resistance band',
-      'roller': 'Roller',
-      'rope': 'Rope',
-      'skierg machine': 'Skierg machine',
-      'sled machine': 'Sled machine',
-      'smith machine': 'Smith machine',
-      'stability ball': 'Stability ball',
-      'stationary bike': 'Stationary bike',
-      'stepmill machine': 'Stepmill machine',
-      'tire': 'Tire',
-      'trap bar': 'Trap bar',
-      'upper body ergometer': 'Upper body ergometer',
-      'weighted': 'Weighted',
-      'wheel roller': 'Wheel roller',
-    },
-    
-    // Target muscle groups translations
-    targets: {
-      'abductors': 'Abductors',
-      'abs': 'Abs',
-      'adductors': 'Adductors',
-      'biceps': 'Biceps',
-      'calves': 'Calves',
-      'cardiovascular system': 'Cardiovascular system',
-      'delts': 'Delts',
-      'forearms': 'Forearms',
-      'glutes': 'Glutes',
-      'hamstrings': 'Hamstrings',
-      'lats': 'Lats',
-      'levator scapulae': 'Levator scapulae',
-      'pectorals': 'Pectorals',
-      'quads': 'Quads',
-      'serratus anterior': 'Serratus anterior',
-      'spine': 'Spine',
-      'traps': 'Traps',
-      'triceps': 'Triceps',
-      'upper back': 'Upper back',
-    },
+
     
     // Filters translations
     filters: {
